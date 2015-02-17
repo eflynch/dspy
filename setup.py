@@ -7,5 +7,5 @@ setup(name='dspy',
       author='Evan Lynch',
       author_email='evan.f.lynch@gmail.com',
       license='MIT',
-      packages=['dspy'],
+      packages=['dspy', 'dspy.generators'],
       zip_safe=False)
