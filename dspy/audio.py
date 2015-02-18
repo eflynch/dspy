@@ -30,9 +30,8 @@ def rechannel(buf, in_channels, out_channels):
    return output
 
 
-
 class Audio:
-   def __init__(self):
+   def __init__(self, listener=None):
       self.audio = pyaudio.PyAudio()
       dev_idx = self._find_best_output()
       self.stream = self.audio.open(format = pyaudio.paFloat32,
@@ -42,9 +41,23 @@ class Audio:
                                     output = True,
                                     input = False,
                                     output_device_index = dev_idx,
-                                    stream_callback = self._callback)
+                                    stream_callback = self._callback,
+                                    start = False)
       self._generators = PriorityQueue()
+      self._listener = listener
       self.gain = 0.1
+
+   def __enter__(self):
+      return self
+
+   def __exit__(self, type, value, traceback):
+      self.close()
+
+   def start(self):
+      self.stream.start_stream()
+
+   def stop(self):
+      self.stream.stop_stream()
 
    def schedule_sequence(self, seq, time):
       for (t, gen) in seq.get_pairs():
@@ -80,9 +93,11 @@ class Audio:
          self._generators.put((time, gen))
 
       output *= self.get_gain()
+
+      if self._listener:
+         self._listener(output)
       
       return (output.tostring(), pyaudio.paContinue)
-
 
    # return the best output index if found. Otherwise, return None
    def _find_best_output(self):
@@ -108,10 +123,6 @@ class Audio:
       # did not find desired device.
       return None
 
-   # shut down the audio driver. It is import to do this before python quits.
-   # Otherwise, python might hang without fully shutting down. 
-   # core.register_terminate_func (see __init__ above) will make sure this
-   # function gets called automatically before shutdown.
    def close(self):
       self.stream.stop_stream()
       self.stream.close()

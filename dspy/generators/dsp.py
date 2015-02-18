@@ -1,17 +1,16 @@
 import numpy as np
 
-from generator import Generator
+from generator import Generator, WrapperGenerator
 from dspy import config
 
 
 SAMPLING_RATE = config['SAMPLING_RATE']
 
 
-class LowPassDSP(Generator):
+class LowPassDSP(WrapperGenerator):
     def __init__(self, generator, cutoff):
-        self.generator = generator
         self.h = self._get_impulse_response(cutoff, L=100)
-        Generator.__init__(self)
+        WrapperGenerator.__init__(self, generator)
 
     def _get_impulse_response(self, cutoff, L):
         omega_cut = float(cutoff) * 2.0 * np.pi / float(SAMPLING_RATE)
@@ -22,12 +21,6 @@ class LowPassDSP(Generator):
         h = np.sin(omega_cut * l_range) / ( np.pi * l_range)
         h[L] = omega_cut / np.pi
         return h
-
-    def length(self):
-        return self.generator.length()
-
-    def release(self):
-        return self.generator.release()
 
     def get_buffer(self, frame_count):
         previous_buffer = self.generator.previous_buffer
@@ -45,18 +38,11 @@ class LowPassDSP(Generator):
 
         return trimmed, continue_flag
 
-class Clip(Generator):
+class Clip(WrapperGenerator):
     def __init__(self, generator, low=-1, high=1):
-        self.generator = generator
         self.low = low
         self.high = high
-        Generator.__init__(self)
-
-    def length(self):
-        return self.generator.length()
-
-    def release(self):
-        return self.generator.release()
+        WrapperGenerator.__init__(self, generator)
 
     def get_buffer(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
@@ -64,33 +50,16 @@ class Clip(Generator):
         signal = np.clip(signal, self.low, self.high)
         return signal, continue_flag
 
-class Abs(Generator):
-    def __init__(self, generator):
-        self.generator = generator
-        Generator.__init__(self)
-
-    def length(self):
-        return self.generator.length()
-
-    def release(self):
-        return self.generator.release()
-
+class Abs(WrapperGenerator):
     def get_buffer(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
         return np.abs(signal), continue_flag
 
-class Compressor(Generator):
+class Compressor(WrapperGenerator):
     def __init__(self, generator, threshold, ratio):
-        self.generator = generator
         self.threshold = threshold
         self.ratio = ratio
-        Generator.__init__(self)
-
-    def length(self):
-        return self.generator.length()
-
-    def release(self):
-        return self.generator.release()
+        WrapperGenerator.__init__(self, generator)
 
     def get_buffer(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)

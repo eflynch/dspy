@@ -7,15 +7,15 @@ SAMPLING_RATE = config['SAMPLING_RATE']
 
 
 class ADSREnvelope(Generator):
-   def __init__(self, attack_time=4410, attack_order=2.0, decay_time=44100,
-                decay_order=1.5, sustain=0.3, release_time=4410, release_order=0.75,
+   def __init__(self, attack_time=0.1, attack_order=2.0, decay_time=1.0,
+                decay_order=1.5, sustain=0.3, release_time=0.1, release_order=0.75,
                 duration=None):
-      self.attack_time = attack_time
+      self.attack_time = attack_time * SAMPLING_RATE
       self.attack_order = attack_order
-      self.decay_time = decay_time
+      self.decay_time = decay_time * SAMPLING_RATE
       self.decay_order = decay_order
       self.sustain = sustain
-      self.release_time = release_time
+      self.release_time = release_time * SAMPLING_RATE
       self.release_order = release_order
       self.release_frame = float('inf')
       if duration:
@@ -70,15 +70,15 @@ class ADDSREnvelope(Generator):
    def __init__(self, attack_time=4410, attack_order=2.0, decay_time=8820,
                 decay_order=0.75, sustain=0.6, decay_time_2=44100, decay_order_2=1.5,
                 sustain_2=0.3, release_time=4410, release_order=0.75, duration=None):
-      self.attack_time = attack_time
+      self.attack_time = attack_time * SAMPLING_RATE
       self.attack_order = attack_order
-      self.decay_time = decay_time
+      self.decay_time = decay_time * SAMPLING_RATE
       self.decay_order = decay_order
-      self.decay_time_2 = decay_time_2
+      self.decay_time_2 = decay_time_2 * SAMPLING_RATE
       self.decay_order_2 = decay_order_2
       self.sustain = sustain
       self.sustain_2 = sustain_2
-      self.release_time = release_time
+      self.release_time = release_time * SAMPLING_RATE
       self.release_order = release_order
       self.release_frame = float('inf')
       if duration:

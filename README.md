@@ -56,16 +56,25 @@ audio.add_generator(gen)
 #### DC ####
 Constant valued signal
 ```
-dspy.generators.DC(value=3.0)
+dc = dspy.generators.DC(value=3.0)
 ```
 
-#### SINE ####
+#### Sine ####
 Sine wave with set frequency, phase, and amplitude
 ```
-dspy.generators.DC(freq=440.0, phase=np.pi, amp=0.75)
+sine = dspy.generators.Sine(freq=440.0, phase=np.pi, amp=0.75)
+```
+
+#### Tone ####
+Harmonic oscillator bank
+```
+tone = dspy.generators.Tone(pitch=60, overtones=[(1,1,0), (2,0.1,0)])
 ```
 
 #### ADSREnvelope ####
+```
+adsr = dspy.generators.ADSREnvelope(attack_time=)
+```
 
 ### DSP ###
 

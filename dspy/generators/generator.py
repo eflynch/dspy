@@ -45,17 +45,49 @@ class Generator(object):
       self._previous_buffer = signal
       return signal, continue_flag
 
-class Product(Generator):
-   def __init__(self, generators):
-      self.generators = generators
+   def release(self):
+      pass
+
+class WrapperGenerator(Generator):
+   def __init__(self, generator):
+      self._generator = generator
       Generator.__init__(self)
 
+   @property
+   def generator(self):
+       return self._generator
+
+   def length(self):
+       return self._generator.length()
+   
+   def release(self):
+       return self._generator.release()
+
+   def reset(self):
+      self._generator.reset()
+      Generator.reset(self)
+
+class BundleGenerator(Generator):
+   def __init__(self, generators):
+      self._generators = generators
+      Generator.__init__(self)
+
+   @property
+   def generators(self):
+       return self._generators
+   
+   def release(self):
+      for g in self._generators:
+         g.release()
+
+   def reset(self):
+      for g in self._generators:
+         g.reset()
+      Generator.reset(self)
+
+class Product(BundleGenerator):
    def length(self):
       return min(g.length() for g in self.generators)
-
-   def release(self):
-      for g in self.generators:
-         g.release()
 
    def get_buffer(self, frame_count):
       # Stop when first factor is done
@@ -69,17 +101,9 @@ class Product(Generator):
 
       return signal, continue_flag
 
-class Sum(Generator):
-   def __init__(self, generators):
-      self.generators = generators
-      Generator.__init__(self)
-
+class Sum(BundleGenerator):
    def length(self):
       return max(g.length() for g in self.generators)
-
-   def release(self):
-      for g in self.generators:
-         g.release()
 
    def get_buffer(self, frame_count):
       # Continue until all summands are done
@@ -92,53 +116,3 @@ class Sum(Generator):
             continue_flag = True
 
       return signal, continue_flag
-
-class FMap(Generator):
-   def __init__(self, generator, function):
-      self.generator = generator
-      self.function = function
-      Generator.__init__(self)
-
-   def length(self):
-      return self.generator.length()
-
-   def release(self):
-      return self.generator.release()
-
-   def get_buffer(self, frame_count):
-      signal, continue_flag = self.generator.generate(frame_count)
-      return self.function(signal), continue_flag
-
-class DC(Generator):
-   def __init__(self, value):
-      self.value = value
-      Generator.__init__(self)
-
-   def length(self):
-      return float('inf')
-
-   def release(self):
-      pass
-
-   def get_buffer(self, frame_count):
-      return np.ones(frame_count, dtype=np.float32) * self.value, True
-
-class Sine(Generator):
-   def __init__(self, freq, phase, amp=1.0):
-      self.freq = freq
-      self.amp = amp
-      self.phase = phase
-      Generator.__init__(self)
-
-   def length(self):
-      return float('inf')
-
-   def release(self):
-      pass
-
-   def get_buffer(self, frame_count):
-      factor = self.freq * 2.0 * np.pi / SAMPLING_RATE
-      domain = np.arange(self.frame, self.frame + frame_count)
-      return self.amp * np.sin(factor * domain + self.phase, dtype=np.float32), True
-
-   

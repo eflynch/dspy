@@ -44,6 +44,10 @@ class FM(Generator):
    def release(self):
       pass
 
+   def reset(self):
+      self.modulator.reset()
+      Genrator.reset(self)
+
    def get_buffer(self, frame_count):
       domain = np.arange(self.frame, self.frame + frame_count)
       modulation, cf = self.modulator.get_buffer(frame_count)
