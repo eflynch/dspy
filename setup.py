@@ -49,4 +49,4 @@ setup(name='dspy',
       install_requires=['PyAudio==0.2.8', 'numpy==1.9.1'],
       cmdclass={'test': PyTest},
       test_suite='tests.test_dspy',
-      zip_safe=False)
+      zip_safe=True)
