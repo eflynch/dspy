@@ -1,13 +1,7 @@
-from __future__ import print_function
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 import io
-import os
 import sys
-
-import dspy
-
-here = os.path.abspath(os.path.dirname(__file__))
 
 def read(*filenames, **kwargs):
     encoding = kwargs.get('encoding', 'utf-8')
@@ -36,17 +30,16 @@ class PyTest(TestCommand):
         sys.exit(errcode)
 
 setup(name='dspy',
-      version=dspy.__version__,
+      version='0.0.0',
       long_description=long_description,
       description='Python DSP and Synthesis',
       url='http://github.com/eflynch/dspy/',
       author='Evan Lynch',
       author_email='evan.f.lynch@gmail.com',
       license='MIT',
-      packages=['dspy', 'dspy.generators'],
+      packages=find_packages(),
       platforms='any',
       tests_require=['pytest'],
       install_requires=['PyAudio==0.2.8', 'numpy==1.9.1'],
       cmdclass={'test': PyTest},
-      test_suite='tests.test_dspy',
       zip_safe=True)
