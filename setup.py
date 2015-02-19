@@ -24,7 +24,7 @@ class PyTest(TestCommand):
         self.test_args = []
         self.test_suite = True
 
-    def run_test(self):
+    def run_tests(self):
         import pytest
         errcode = pytest.main(self.pytest_args)
         sys.exit(errcode)
