@@ -19,7 +19,6 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 long_description = read('README.txt')
-install_requires = read('requirements.txt')[:-1]
 
 class PyTest(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -47,7 +46,7 @@ setup(name='dspy',
       packages=['dspy', 'dspy.generators'],
       platforms='any',
       tests_require=['pytest'],
-      install_requires=install_requires,
+      install_requires=['PyAudio==0.2.8', 'numpy==1.9.1'],
       cmdclass={'test': PyTest},
       test_suite='tests.test_dspy',
       zip_safe=False)
