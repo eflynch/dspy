@@ -50,5 +50,4 @@ setup(name='dspy',
       install_requires=install_requires,
       cmdclass={'test': PyTest},
       test_suite='tests.test_dspy',
-      extras_require={'testing': ['pytest']},
       zip_safe=False)
