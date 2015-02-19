@@ -1,18 +1,5 @@
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
-import io
-import sys
-
-def read(*filenames, **kwargs):
-    encoding = kwargs.get('encoding', 'utf-8')
-    sep = kwargs.get('sep', '\n')
-    buf = []
-    for filename in filenames:
-        with io.open(filename, encoding=encoding) as f:
-            buf.append(f.read())
-    return sep.join(buf)
-
-long_description = read('README.txt')
 
 class PyTest(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
@@ -31,7 +18,6 @@ class PyTest(TestCommand):
 
 setup(name='dspy',
       version='0.0.0',
-      long_description=long_description,
       description='Python DSP and Synthesis',
       url='http://github.com/eflynch/dspy/',
       author='Evan Lynch',
