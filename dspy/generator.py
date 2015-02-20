@@ -18,11 +18,8 @@ class Generator(object):
     def __mul__(self, other):
         return Product([self, other])
 
-    def reset(self):
-        self._frame = 0
-
-    def length(self):
-        return float('inf')
+    def __len__(self):
+        return self.length()
 
     @property
     def num_channels(self):
@@ -49,11 +46,17 @@ class Generator(object):
         continue_flag = self._frame < self.length()
         return signal, continue_flag
 
+    def reset(self):
+        self._frame = 0
+
+    def length(self):
+        return float('inf')
+
     def release(self):
         pass
 
-    def add(self, generator, time):
-        pass
+    def get_buffer(self, frame_count):
+        return np.zeros(frame_count, dtype=np.float32)
 
 
 class WrapperGenerator(Generator):

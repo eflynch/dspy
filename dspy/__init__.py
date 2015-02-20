@@ -13,6 +13,8 @@ from dspy.player import Player
 from dspy.generator import Generator, WrapperGenerator, BundleGenerator, Sum, Product
 from dspy.basic import FMap, DC, Sine, WaveTable, Noise, Pink
 from dspy.adsr import ADSREnvelope
-from dspy.note import Tone, Note, FM, SQUARE_AMPLITUDES, SINE_AMPLITUDES, SAW_AMPLITUDES, TRI_AMPLITUDES
+from dspy.note import Tone, Note, FM
 from dspy.sampler import Sampler
+
+import dspy import overtones
 from dspy import dsp
