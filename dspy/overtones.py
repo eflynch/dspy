@@ -1,3 +1,5 @@
+import numpy as np
+
 SQUARE_AMPLITUDES = [ (i, 1./float(i), 0) for i in xrange(1,20) if i%2==1]
 SINE_AMPLITUDES = [(1, 1.0, 0.0)]
 SAW_AMPLITUDES = [ (i, (-1)**(i+1) * 1./float(i), 0) for i in xrange(1, 20)]

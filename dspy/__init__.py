@@ -3,8 +3,7 @@
 .. moduleauthor:: Evan Lynch <evan.f.lynch@gmail.com>
 
 """
-
-__version__ = "0.0.0"
+from ._version import __version__
 
 config = {}
 config['SAMPLING_RATE'] = 44100

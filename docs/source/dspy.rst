@@ -1,10 +1,8 @@
 dspy
 =======================
 
-Submodules
-----------
 
-dspy.adsr module
+dspy.adsr
 ---------------------------
 
 .. automodule:: dspy.adsr
@@ -12,7 +10,7 @@ dspy.adsr module
     :undoc-members:
     :show-inheritance:
 
-dspy.basic module
+dspy.basic
 ----------------------------
 
 .. automodule:: dspy.basic
@@ -20,7 +18,7 @@ dspy.basic module
     :undoc-members:
     :show-inheritance:
 
-dspy.dsp module
+dspy.dsp
 --------------------------
 
 .. automodule:: dspy.dsp
@@ -28,7 +26,7 @@ dspy.dsp module
     :undoc-members:
     :show-inheritance:
 
-dspy.generator module
+dspy.generator
 --------------------------------
 
 .. automodule:: dspy.generator
@@ -36,7 +34,7 @@ dspy.generator module
     :undoc-members:
     :show-inheritance:
 
-dspy.note module
+dspy.note
 ---------------------------
 
 .. automodule:: dspy.note
@@ -44,7 +42,7 @@ dspy.note module
     :undoc-members:
     :show-inheritance:
 
-dspy.sampler module
+dspy.sampler
 ------------------------------
 
 .. automodule:: dspy.sampler
@@ -53,7 +51,7 @@ dspy.sampler module
     :show-inheritance:
 
 
-dspy.player module
+dspy.player
 ------------------------------
 
 .. automodule:: dspy.player
@@ -61,7 +59,7 @@ dspy.player module
     :undoc-members:
     :show-inheritance:
 
-dspy.lib module
+dspy.lib
 ------------------------------
 
 .. automodule:: dspy.lib
