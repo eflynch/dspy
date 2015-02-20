@@ -1,9 +1,7 @@
 from Queue import PriorityQueue
-from datetime import datetime
 
 import numpy as np
 
-from dspy import config
 from dspy.generator import Generator
 from dspy.lib import rechannel, t2f
 
@@ -16,11 +14,11 @@ class Player(Generator):
         self._live = live
         self.num_channels = channels
         if sequence:
-            for (f,g) in sequence:
-                self._generators.put((f,g))
+            for (f, g) in sequence:
+                self._generators.put((f, g))
 
         if not live:
-            self._length = max([f+g.length() for (f,g) in sequence] + [0])
+            self._length = max([f+g.length() for (f, g) in sequence] + [0])
 
     def add(self, gen, time=None):
         if not self._live:
@@ -37,16 +35,16 @@ class Player(Generator):
 
         return self._length
 
-
     @property
     def gain(self):
         return self._gain
+
     @gain.setter
     def gain(self, value):
         self._gain = np.clip(value, 0, 1)
 
     def get_buffer(self, frame_count):
-        output = np.zeros( frame_count * self.num_channels, dtype = np.float32)
+        output = np.zeros(frame_count * self.num_channels, dtype=np.float32)
         not_done = []
         while not self._generators.empty():
             frame, gen = self._generators.get()
@@ -59,7 +57,8 @@ class Player(Generator):
                 delay = frame - self.frame
 
             signal, continue_flag = gen.generate(frame_count - delay)
-            output[delay*self.num_channels:] += rechannel(signal, gen.num_channels, self.num_channels)
+            signal = rechannel(signal, gen.num_channels, self.num_channels)
+            output[delay * self.num_channels:] += signal
             if continue_flag:
                 not_done.append((frame, gen))
 

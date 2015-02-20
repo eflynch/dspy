@@ -9,7 +9,6 @@
 #####################################################################
 
 import wave
-import struct
 
 import numpy as np
 
@@ -22,26 +21,24 @@ SAMPLING_RATE = config['SAMPLING_RATE']
 
 
 class WaveReader(object):
-    def __init__(self, filepath) :
+    def __init__(self, filepath):
         super(WaveReader, self).__init__()
 
         self.wave = wave.open(filepath)
         self.channels, self.sampwidth, self.sr, self.end, \
             comptype, compname = self.wave.getparams()
-      
-        # for now, we will only accept stereo, 16 bit files      
         assert(self.channels == 2)
         assert(self.sampwidth == 2)
         assert(self.sr == SAMPLING_RATE)
 
     # read an arbitrary chunk of an arbitrary length
-    def read(self, num_frames) :
+    def read(self, num_frames):
         # get the raw data from wave file as a byte string.
         # will return num_frames, or less if too close to end of file
         raw_bytes = self.wave.readframes(num_frames * self.channels)
 
         # convert to numpy array, where the dtype is int16 or int8
-        samples = np.fromstring(raw_bytes, dtype = np.int16)
+        samples = np.fromstring(raw_bytes, dtype=np.int16)
 
         # convert from integer type to floating point, and scale to [-1, 1]
         samples = samples.astype(np.float32)
@@ -49,16 +46,16 @@ class WaveReader(object):
 
         return samples
 
-    def set_pos(self, frame) :
+    def set_pos(self, frame):
         self.wave.setpos(frame)
 
 
 class Sampler(object):
-    def __init__(self, file_path) :
+    def __init__(self, file_path):
         self.wave_reader = WaveReader(file_path)
 
     class Sample(Generator):
-        def __init__(self, data, num_channels, loop=False) :
+        def __init__(self, data, num_channels, loop=False):
             Generator.__init__(self)
             self.num_channels = num_channels
             self.data = data

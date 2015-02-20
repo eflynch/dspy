@@ -1,6 +1,6 @@
 import numpy as np
 
-from dspy.generator import Generator, WrapperGenerator
+from dspy.generator import WrapperGenerator
 from dspy import config
 
 
@@ -17,8 +17,8 @@ class LowPassDSP(WrapperGenerator):
         # [radians/sample] = [cycles/sec] * [radians/cycle] * [sec/sample]
 
         l_range = np.arange(-L, L, dtype=np.float32)
-        l_range[L] = 1.0 # to avoid divide by zero error
-        h = np.sin(omega_cut * l_range) / ( np.pi * l_range)
+        l_range[L] = 1.0  # to avoid divide by zero error
+        h = np.sin(omega_cut * l_range) / (np.pi * l_range)
         h[L] = omega_cut / np.pi
         return h
 
@@ -34,7 +34,7 @@ class LowPassDSP(WrapperGenerator):
 
         start_frame = end_frame - len(signal)
 
-        trimmed = output[start_frame : end_frame]
+        trimmed = output[start_frame:end_frame]
 
         return trimmed
 
@@ -66,7 +66,8 @@ class Compressor(WrapperGenerator):
 
     def get_buffer(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
-        no_compression = abs(signal) <= self.threshold
         compression = abs(signal) > self.threshold
-        signal[compression] = self.threshold + (self.ratio *(signal[compression] - self.threshold))
+        signal[compression] = self.threshold + (self.ratio *
+                                                (signal[compression] -
+                                                 self.threshold))
         return signal

@@ -4,6 +4,7 @@
 
 """
 from ._version import __version__
+__version__ = __version__
 
 config = {}
 config['SAMPLING_RATE'] = 44100
@@ -11,7 +12,7 @@ config['SAMPLING_RATE'] = 44100
 from dspy.player import Player
 from dspy.generator import Generator, WrapperGenerator, BundleGenerator, Sum, Product
 from dspy.basic import FMap, DC, Sine, WaveTable, Noise, Pink
-from dspy.adsr import ADSREnvelope
+from dspy.envelope import ExpEnvelope, ReleaseEnvelope, ADSREnvelope
 from dspy.note import Tone, Note, FM
 from dspy.sampler import Sampler
 

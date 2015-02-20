@@ -70,7 +70,7 @@ class WrapperGenerator(Generator):
 
     def length(self):
         return self._generator.length()
-   
+
     def release(self):
         return self._generator.release()
 
@@ -87,7 +87,7 @@ class BundleGenerator(Generator):
     @property
     def generators(self):
         return self._generators
-   
+
     def release(self):
         for g in self._generators:
             g.release()
@@ -121,6 +121,6 @@ class Sum(BundleGenerator):
         signal = np.zeros(frame_count, dtype=np.float32)
         for g in self.generators:
             data, cf = g.generate(frame_count)
-            signal+= data
+            signal += data
 
         return signal
