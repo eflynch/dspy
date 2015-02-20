@@ -16,5 +16,5 @@ from dspy.adsr import ADSREnvelope
 from dspy.note import Tone, Note, FM
 from dspy.sampler import Sampler
 
-import dspy import overtones
+from dspy import overtones
 from dspy import dsp
