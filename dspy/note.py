@@ -10,7 +10,8 @@ SAMPLING_RATE = config['SAMPLING_RATE']
 
 
 class Note(Generator):
-    def __new__(cls, pitch, overtones, detune, duration=None, envelope=None):
+    def __new__(cls, pitch=60, overtones=[(1, 1, 0)], detune=0, duration=None,
+                envelope=None):
         t = Tone(pitch, overtones, detune)
         if envelope is None:
             envelope = ADSREnvelope()
@@ -30,16 +31,12 @@ class FM(Generator):
 
         Generator.__init__(self)
 
-    def release(self):
-        pass
-
-    def reset(self):
+    def _reset(self):
         self.modulator.reset()
-        Generator.reset(self)
 
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         domain = np.arange(self.frame, self.frame + frame_count)
-        modulation, cf = self.modulator.get_buffer(frame_count)
+        modulation, cf = self.modulator._generate(frame_count)
         signal = np.sin(self._factor * domain + modulation, dtype=np.float32)
         return signal
 
@@ -56,10 +53,7 @@ class Tone(Generator):
 
         Generator.__init__(self)
 
-    def release(self):
-        pass
-
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         domain = np.arange(self.frame, self.frame + frame_count)
 
         signal = np.zeros(frame_count, dtype=np.float32)

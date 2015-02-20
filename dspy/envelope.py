@@ -1,7 +1,7 @@
 """
-.. module:: adsr
+.. module:: envelope
      :platform: Unix, Windows
-     :synopsis: Generators for ADSR enveloping
+     :synopsis: Generators for enveloping
 
 .. moduleauthor: Evan Lynch <evan.f.lynch@gmail.com>
 
@@ -26,7 +26,7 @@ class ExpEnvelope(Generator):
         return lambda x: (init + (dest - init) * ((x - start) / dur) **
                           (1 / order))
 
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         domain = np.arange(self.frame, self.frame + frame_count,
                            dtype=np.float32)
         conditions = []
@@ -56,13 +56,17 @@ class ReleaseEnvelope(Generator):
         if duration:
             self.release_frame = t2f(duration) - self.release_time
 
-    def length(self):
-        return self.release_frame + self.release_time
-
     def set_duration(self, duration):
         self.release_frame = t2f(duration)
 
-    def get_buffer(self, frame_count):
+    def _length(self):
+        return self.release_frame + self.release_time
+
+    def _release(self):
+        self.release_frame = self.frame
+
+    def _generate(self, frame_count):
+        # print self.frame, frame_count
         domain = np.arange(self.frame, self.frame + frame_count,
                            dtype=np.float32)
         conditions = [

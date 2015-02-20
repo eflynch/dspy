@@ -61,13 +61,10 @@ class Sampler(object):
             self.data = data
             self.loop = loop
 
-        def length(self):
-            if self.loop:
-                return float('inf')
-            else:
-                return len(self.data) / self.num_channels
+        def _length(self):
+            return len(self.data) / self.num_channels
 
-        def get_buffer(self, frame_count):
+        def _generate(self, frame_count):
             sample = self.frame * self.num_channels
             length = frame_count * self.num_channels
             domain = np.arange(sample, sample + length)

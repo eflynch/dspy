@@ -22,7 +22,7 @@ class LowPassDSP(WrapperGenerator):
         h[L] = omega_cut / np.pi
         return h
 
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         previous_buffer = self.generator.previous_buffer
         signal = self.generator.generate(frame_count)
 
@@ -45,7 +45,7 @@ class Clip(WrapperGenerator):
         self.high = high
         WrapperGenerator.__init__(self, generator)
 
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
 
         signal = np.clip(signal, self.low, self.high)
@@ -53,7 +53,7 @@ class Clip(WrapperGenerator):
 
 
 class Abs(WrapperGenerator):
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
         return np.abs(signal)
 
@@ -64,7 +64,7 @@ class Compressor(WrapperGenerator):
         self.ratio = ratio
         WrapperGenerator.__init__(self, generator)
 
-    def get_buffer(self, frame_count):
+    def _generate(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
         compression = abs(signal) > self.threshold
         signal[compression] = self.threshold + (self.ratio *
