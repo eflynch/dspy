@@ -11,7 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   introduction
    dspy
+   examples
 
 
 Indices and tables
