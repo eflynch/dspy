@@ -38,6 +38,7 @@ class LowPassDSP(WrapperGenerator):
 
         return trimmed
 
+
 class Clip(WrapperGenerator):
     def __init__(self, generator, low=-1, high=1):
         self.low = low
@@ -50,10 +51,12 @@ class Clip(WrapperGenerator):
         signal = np.clip(signal, self.low, self.high)
         return signal
 
+
 class Abs(WrapperGenerator):
     def get_buffer(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
         return np.abs(signal)
+
 
 class Compressor(WrapperGenerator):
     def __init__(self, generator, threshold, ratio):
@@ -67,24 +70,3 @@ class Compressor(WrapperGenerator):
         compression = abs(signal) > self.threshold
         signal[compression] = self.threshold + (self.ratio *(signal[compression] - self.threshold))
         return signal
-
-
-
-if __name__ == "__main__":
-
-    from note import ToneGenerator
-    import matplotlib.pyplot as plt
-
-    SQUARE_AMPLITUDES = [ (i, 1./float(i), 0) for i in xrange(1,20) if i%2==1]
-    tone = ToneGenerator(44, SQUARE_AMPLITUDES)
-    tone1 = ToneGenerator(44, SQUARE_AMPLITUDES)
-
-    low_pass = LowPassDSP(tone, 100)
-    low_pass.generate(512)
-    low_pass.generate(512)
-    low_pass.generate(512)
-
-    plt.figure()
-    # plt.plot(np.concatenate((tone1.generate(512)[0], tone1.previous_buffer)))
-    # plt.plot(np.concatenate((low_pass.generate(512)[0], low_pass.generate(512)[0], low_pass.generate(512)[0])))
-    plt.show()
