@@ -1,6 +1,6 @@
 import numpy as np
 
-from generator import Generator, WrapperGenerator
+from dspy.generator import Generator, WrapperGenerator
 from dspy import config
 
 
@@ -24,7 +24,7 @@ class LowPassDSP(WrapperGenerator):
 
     def get_buffer(self, frame_count):
         previous_buffer = self.generator.previous_buffer
-        signal, continue_flag = self.generator.generate(frame_count)
+        signal = self.generator.generate(frame_count)
 
         with_previous = np.concatenate((previous_buffer, signal))
 
@@ -36,7 +36,7 @@ class LowPassDSP(WrapperGenerator):
 
         trimmed = output[start_frame : end_frame]
 
-        return trimmed, continue_flag
+        return trimmed
 
 class Clip(WrapperGenerator):
     def __init__(self, generator, low=-1, high=1):
@@ -48,12 +48,12 @@ class Clip(WrapperGenerator):
         signal, continue_flag = self.generator.generate(frame_count)
 
         signal = np.clip(signal, self.low, self.high)
-        return signal, continue_flag
+        return signal
 
 class Abs(WrapperGenerator):
     def get_buffer(self, frame_count):
         signal, continue_flag = self.generator.generate(frame_count)
-        return np.abs(signal), continue_flag
+        return np.abs(signal)
 
 class Compressor(WrapperGenerator):
     def __init__(self, generator, threshold, ratio):
@@ -66,7 +66,7 @@ class Compressor(WrapperGenerator):
         no_compression = abs(signal) <= self.threshold
         compression = abs(signal) > self.threshold
         signal[compression] = self.threshold + (self.ratio *(signal[compression] - self.threshold))
-        return signal, continue_flag
+        return signal
 
 
 

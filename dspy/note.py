@@ -1,8 +1,9 @@
 import numpy as np
 
-from adsr import ADSREnvelope
-from generator import Generator
+from dspy.adsr import ADSREnvelope
+from dspy.generator import Generator
 from dspy import config
+from dspy.lib import t2f
 
 
 SAMPLING_RATE = config['SAMPLING_RATE']
@@ -24,11 +25,12 @@ class Note(Generator):
       if envelope == None:
          envelope = ADSREnvelope()
       if duration != None:
-         release_frame = duration * SAMPLING_RATE - envelope.release_time
+         release_frame = t2f(duration) - envelope.release_time
          envelope.set_release_frame(release_frame)
 
       gen = t * envelope
       return gen
+
 
 class FM(Generator):
    def __init__(self, pitch, modulator, detune=0):
@@ -37,9 +39,6 @@ class FM(Generator):
       self._factor = self.freq * 2.0 * np.pi / SAMPLING_RATE
 
       Generator.__init__(self)
-
-   def length(self):
-      return float('inf')
 
    def release(self):
       pass
@@ -52,8 +51,8 @@ class FM(Generator):
       domain = np.arange(self.frame, self.frame + frame_count)
       modulation, cf = self.modulator.get_buffer(frame_count)
       signal = np.sin(self._factor * domain + modulation, dtype = np.float32)
-      continue_flag = self.frame + frame_count < self.length()
-      return signal, continue_flag
+      return signal
+
 
 class Tone(Generator):
    def __init__(self, pitch, overtones=[(1,1,0)], detune=0):
@@ -63,9 +62,6 @@ class Tone(Generator):
       self._factor = self.freq * 2.0 * np.pi / SAMPLING_RATE
 
       Generator.__init__(self)
-
-   def length(self):
-      return float('inf')
 
    def release(self):
       pass
@@ -77,5 +73,4 @@ class Tone(Generator):
       for order, amp, phase in self.overtones:
          signal += amp * np.sin(order * self._factor * domain + phase, dtype = np.float32)
 
-      continue_flag = self.frame + frame_count < self.length()
-      return signal, continue_flag
+      return signal

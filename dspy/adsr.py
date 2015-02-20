@@ -1,25 +1,57 @@
+"""
+.. module:: adsr
+    :platform: Unix, Windows
+    :synopsis: Generators for ADSR enveloping
+
+.. moduleauthor: Evan Lynch <evan.f.lynch@gmail.com>
+
+"""
 import numpy as np
 
-from generator import Generator
 from dspy import config
+from dspy.lib import t2f
+from dspy.generator import Generator
+
 
 SAMPLING_RATE = config['SAMPLING_RATE']
 
 
 class ADSREnvelope(Generator):
+   """Generator for producing an ADSR envelope.
+   """
+
    def __init__(self, attack_time=0.1, attack_order=2.0, decay_time=1.0,
                 decay_order=1.5, sustain=0.3, release_time=0.1, release_order=0.75,
                 duration=None):
-      self.attack_time = attack_time * SAMPLING_RATE
+      """Generator for producing an ADSR envelope.
+
+      :param attack_time: Duration of attack.
+      :type attack_time: duration.
+      :param attack_order: Exponential order of attack.
+      :type attack_order: float.
+      :param decay_time: Duration of decay.
+      :type decay_time: duration.
+      :param decay_order: Exponential order of decay.
+      :type decay_order: float.
+      :param sustain: Gain of sustain.
+      :type sustain: float.
+      :param release_time: Duration of release.
+      :type release_time: duration.
+      :param release_order: Exponential order of release.
+      :type release_order: float.
+      :param duration: Duration of envelope (sets release time).
+      :type duration: duration.
+      """
+      self.attack_time = t2f(attack_time)
       self.attack_order = attack_order
-      self.decay_time = decay_time * SAMPLING_RATE
+      self.decay_time = t2f(decay_time)
       self.decay_order = decay_order
       self.sustain = sustain
-      self.release_time = release_time * SAMPLING_RATE
+      self.release_time = t2f(release_time)
       self.release_order = release_order
       self.release_frame = float('inf')
       if duration:
-         self.release_frame = duration * SAMPLING_RATE - release_time
+         self.release_frame = t2f(duration) - self.release_time
       Generator.__init__(self)
 
    def length(self):
@@ -33,7 +65,7 @@ class ADSREnvelope(Generator):
       self.release_frame = self.frame
 
    def set_release_frame(self, frame):
-      self.release_frame = frame
+      self.release_frame = t2f(frame)
 
    def get_buffer(self, frame_count):
       domain = np.arange(self.frame, self.frame + frame_count, dtype= np.float32)
@@ -62,9 +94,7 @@ class ADSREnvelope(Generator):
       ]
       signal *= np.piecewise(domain, conditions, functions)
 
-      continue_flag = self.length() > self.frame
-
-      return signal, continue_flag
+      return signal
 
 class ADDSREnvelope(Generator):
    def __init__(self, attack_time=4410, attack_order=2.0, decay_time=8820,
@@ -127,9 +157,7 @@ class ADDSREnvelope(Generator):
       ]
       signal *= np.piecewise(domain, conditions, functions)
 
-      continue_flag = self.length() > self.frame
-
-      return signal, continue_flag
+      return signal
 
 
 if __name__ == "__main__":

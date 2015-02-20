@@ -13,8 +13,9 @@ import struct
 
 import numpy as np
 
-from generator import Generator
+from dspy.generator import Generator
 from dspy import config
+from dspy.lib import t2f
 
 
 SAMPLING_RATE = config['SAMPLING_RATE']
@@ -75,11 +76,11 @@ class Sampler(object):
             domain = np.arange(sample, sample + length)
             indices = (domain + len(self.data)) % len(self.data)
             output = np.array(self.data[indices], dtype=np.float32)
+            return output
 
-            continue_flag = self.frame < self.length()
-            return output, continue_flag
-
-    def make_gen(self, start_frame, num_frames, loop=False):
+    def make_gen(self, start, duration, loop=False):
+        start_frame = t2f(start)
+        num_frames = t2f(duration)
         self.wave_reader.set_pos(start_frame)
         data = self.wave_reader.read(num_frames)
         num_channels = self.wave_reader.channels

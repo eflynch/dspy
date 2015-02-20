@@ -1,7 +1,7 @@
 import numpy as np
 
 from dspy import config
-from dspy.generators.generator import WrapperGenerator, Generator
+from dspy.generator import WrapperGenerator, Generator
 
 
 SAMPLING_RATE = config['SAMPLING_RATE']
@@ -14,18 +14,17 @@ class FMap(WrapperGenerator):
 
    def get_buffer(self, frame_count):
       signal, continue_flag = self.generator.generate(frame_count)
-      return self.function(signal), continue_flag
+      return self.function(signal)
+
 
 class DC(Generator):
    def __init__(self, value):
       self.value = value
       Generator.__init__(self)
 
-   def length(self):
-      return float('inf')
-
    def get_buffer(self, frame_count):
-      return np.ones(frame_count, dtype=np.float32) * self.value, True
+      return np.ones(frame_count, dtype=np.float32) * self.value
+
 
 class Sine(Generator):
    def __init__(self, freq, phase, amp=1.0):
@@ -34,13 +33,11 @@ class Sine(Generator):
       self.phase = phase
       Generator.__init__(self)
 
-   def length(self):
-      return float('inf')
-
    def get_buffer(self, frame_count):
       factor = self.freq * 2.0 * np.pi / SAMPLING_RATE
       domain = np.arange(self.frame, self.frame + frame_count)
-      return self.amp * np.sin(factor * domain + self.phase, dtype=np.float32), True
+      return self.amp * np.sin(factor * domain + self.phase, dtype=np.float32)
+
 
 #TODO: Optimize this class
 class WaveTable(Generator):
@@ -48,27 +45,20 @@ class WaveTable(Generator):
       self.table = table
       Generator.__init__(self)
 
-   def length(self):
-      return float('inf')
-
    def get_buffer(self, frame_count):
       domain = np.arange(self.frame, self.frame+frame_count)
       indices = (domain + len(self.table)) % len(self.table)
       output = np.array(self.table[indices], dtype=np.float32)
-      return output, True
+      return output
 
 
 class Noise(Generator):
-   def length(self):
-      return float('inf')
-
    def get_buffer(self, frame_count):
-      return np.array(np.random.rand(frame_count) - 0.5, dtype=np.float32), True
+      return np.array(np.random.rand(frame_count) - 0.5, dtype=np.float32)
 
+
+#TODO: Make this better
 class Pink(Generator):
-   def length(self):
-      return float('inf')
-
    def get_buffer(self, frame_count):
       alpha = 1.0
       white_noise = np.array(np.random.rand(frame_count) - 0.5, dtype=np.float32)
@@ -77,4 +67,4 @@ class Pink(Generator):
       filter_spectrum = filter_spectrum ** (-alpha)
       filter_spectrum *= 50.0
       pink_noise = np.real(np.fft.ifft(np.fft.fft(white_noise)*filter_spectrum))
-      return pink_noise, True
+      return pink_noise

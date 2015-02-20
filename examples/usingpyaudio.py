@@ -1,6 +1,7 @@
 import pyaudio
 
-from dspy import config, Audio
+from dspy import config, Player
+
 
 def _find_best_output(audio):
     # for Windows, we want to find the ASIO host API and device
@@ -25,14 +26,15 @@ def _find_best_output(audio):
     # did not find desired device.
     return None
 
-class PyAudioListener:
-    def __init__(self, audio):
-        self.audio = audio
+
+class PyAudioPlayer:
+    def __init__(self, player):
+        self.player = player
         self.pyaudio = pyaudio.PyAudio()
         dev_idx = _find_best_output(self.pyaudio)
 
         self.stream = self.pyaudio.open(format = pyaudio.paFloat32,
-                       channels = config['OUTPUT_CHANNELS'],
+                       channels = player.num_channels,
                        frames_per_buffer = 512,
                        rate = config['SAMPLING_RATE'],
                        output = True,
@@ -48,8 +50,8 @@ class PyAudioListener:
         self.close()
 
     def _callback(self, in_data, frame_count, time_info, status):
-        output = self.audio.get_output(frame_count)
-        return output.tostring(), pyaudio.paContinue
+        output, continue_flag = self.player.generate(frame_count)
+        return (output.tostring(), pyaudio.paContinue)
 
     def start(self):
         self.stream.start_stream()

@@ -21,6 +21,9 @@ class Generator(object):
    def reset(self):
       self._frame = 0
 
+   def length(self):
+      return float('inf')
+
    @property
    def num_channels(self):
       return self._num_channels
@@ -40,9 +43,10 @@ class Generator(object):
       return self._frame
 
    def generate(self, frame_count):
-      signal, continue_flag = self.get_buffer(frame_count)
+      signal = self.get_buffer(frame_count)
       self._frame = self._frame + frame_count
       self._previous_buffer = signal
+      continue_flag = self._frame < self.length()
       return signal, continue_flag
 
    def release(self):
@@ -92,14 +96,12 @@ class Product(BundleGenerator):
    def get_buffer(self, frame_count):
       # Stop when first factor is done
       signal = np.ones(frame_count, dtype=np.float32)
-      continue_flag = True
       for g in self.generators:
          data, cf = g.generate(frame_count)
          signal *= data
-         if not cf:
-            continue_flag = False
 
-      return signal, continue_flag
+      return signal
+
 
 class Sum(BundleGenerator):
    def length(self):
@@ -108,11 +110,8 @@ class Sum(BundleGenerator):
    def get_buffer(self, frame_count):
       # Continue until all summands are done
       signal = np.zeros(frame_count, dtype=np.float32)
-      continue_flag = False
       for g in self.generators:
          data, cf = g.generate(frame_count)
          signal+= data
-         if cf:
-            continue_flag = True
 
-      return signal, continue_flag
+      return signal

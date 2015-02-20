@@ -1,11 +1,11 @@
 import dspy
-import dspy.generators as gens
 
-from usingpyaudio import PyAudioListener
+from usingpyaudio import PyAudioPlayer
 
-a = dspy.Audio()
-with PyAudioListener(a) as p:
-    n = gens.Noise()
-    a.add_generator(n)
-    p.start()
-    raw_input('Enter to stop the noise')
+if __name__ == "__main__":
+    a = dspy.Player()
+    with PyAudioPlayer(a) as p:
+        n = dspy.Noise()
+        a.add(n)
+        p.start()
+        raw_input('Enter to stop the noise')
