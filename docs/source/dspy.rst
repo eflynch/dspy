@@ -2,10 +2,10 @@ dspy
 =======================
 
 
-dspy.adsr
+dspy.envelope
 ---------------------------
 
-.. automodule:: dspy.adsr
+.. automodule:: dspy.envelope
     :members:
     :undoc-members:
     :show-inheritance:

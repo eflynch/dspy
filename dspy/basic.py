@@ -7,7 +7,7 @@ from dspy.generator import WrapperGenerator, Generator
 SAMPLING_RATE = config['SAMPLING_RATE']
 
 
-class FMap(WrapperGenerator):
+class Map(WrapperGenerator):
     def __init__(self, generator, function):
         self.function = function
         WrapperGenerator.__init__(self, generator)
@@ -38,6 +38,24 @@ class Sine(Generator):
         domain = np.arange(self.frame, self.frame + frame_count)
         output = np.sin(factor * domain + self.phase, dtype=np.float32)
         return self.amp * output
+
+
+class Rect(Generator):
+    def __init__(self, freq, phase, duty=0.5, amp=1.0):
+        self.freq = freq
+        self.phase = phase
+        self.duty = duty
+        self.amp = amp
+        Generator.__init__(self)
+
+    def _generate(self, frame_count):
+        width = SAMPLING_RATE / self.freq
+        phase = width * self.phase / (2 * np.pi)
+        domain = np.arange(self.frame, self.frame + frame_count)
+        highs = (domain + phase) % width > (width * self.duty)
+        domain[highs] = self.amp
+        domain[~highs] = -self.amp
+        return domain
 
 
 # TODO: Optimize this class
