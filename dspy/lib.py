@@ -36,7 +36,7 @@ def t2f(t):
         return t * config['SAMPLING_RATE']
 
     if isinstance(t, int):
-        return int
+        return t
 
 
 def pitch_to_frequency(pitch):

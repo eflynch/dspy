@@ -30,5 +30,8 @@ setup(name='dspy',
       platforms='any',
       tests_require=['pytest'],
       install_requires=['numpy>=1.9.1'],
+      extras_require = {
+        'pyaudio': ['pyaudio']
+      },
       cmdclass={'test': PyTest},
       zip_safe=True)

@@ -1,6 +1,6 @@
 import pyaudio
 
-from dspy import config, Player
+from dspy import config
 
 
 def _find_best_output(audio):

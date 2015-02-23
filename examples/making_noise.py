@@ -1,11 +1,14 @@
-import dspy
+import os
 
-from usingpyaudio import PyAudioPlayer
+import dspy as dp
+
+here = os.path.dirname(__file__)
 
 if __name__ == "__main__":
-    a = dspy.Player()
-    with PyAudioPlayer(a) as p:
-        s = dspy.Player([(44100*i, dspy.Noise() * dspy.ADSREnvelope(duration=0.5)) for i in xrange(5)], live=False, loop=True)
-        a.add(s)
+    a = dp.Player()
+    with dp.PyAudioPlayer(a) as p:
+        sampler = dp.Sampler(os.path.join(here, 'data/example.wav'))
+        g = sampler.sample(0, 88200, loop=True)
+        a.add(g)
         p.start()
         raw_input('Enter to stop the noise:\n')
