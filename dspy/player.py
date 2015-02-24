@@ -18,7 +18,7 @@ class Player(Generator):
         self.num_channels = channels
         if sequence:
             for (f, g) in sequence:
-                self._generators.put((f, g))
+                self._generators.put((t2f(f), g))
 
         assert(live != loop)
 
