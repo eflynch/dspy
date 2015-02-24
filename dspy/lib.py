@@ -30,10 +30,10 @@ def rechannel(buf, in_channels, out_channels):
 
 def t2f(t):
     if isinstance(t, timedelta):
-        return t.total_seconds() * config['SAMPLING_RATE']
+        return int(t.total_seconds() * config['SAMPLING_RATE'])
 
     if isinstance(t, float):
-        return t * config['SAMPLING_RATE']
+        return int(t * config['SAMPLING_RATE'])
 
     if isinstance(t, int):
         return t

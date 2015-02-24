@@ -11,7 +11,7 @@ class Generator(object):
         self._num_channels = 1
         self._frame = 0
         self._previous_buffer = None
-        self._loop = False
+        self._auto_reset = False
 
     def __add__(self, other):
         return Sum([self, other])
@@ -23,12 +23,12 @@ class Generator(object):
         return self.length()
 
     @property
-    def loop(self):
-        return self._loop
+    def auto_reset(self):
+        return self._auto_reset
 
-    @loop.setter
-    def loop(self, value):
-        self._loop = value
+    @auto_reset.setter
+    def auto_reset(self, value):
+        self._auto_reset = value
 
     @property
     def num_channels(self):
@@ -49,7 +49,7 @@ class Generator(object):
         return self._frame
 
     def generate(self, frame_count):
-        if self.loop and self._frame + frame_count >= self._length():
+        if self._auto_reset and self._frame + frame_count >= self._length():
             remainder = int(self._length() - self._frame)
             signal = self._generate(remainder)
             self.reset()
@@ -67,7 +67,7 @@ class Generator(object):
         self._frame = 0
 
     def length(self):
-        if self.loop:
+        if self._auto_reset:
             return float('inf')
         return self._length()
 
@@ -90,8 +90,9 @@ class Generator(object):
 
 class WrapperGenerator(Generator):
     def __init__(self, generator):
-        self._generator = generator
         Generator.__init__(self)
+        self._generator = generator
+        self.num_channels = generator.num_channels
 
     @property
     def generator(self):

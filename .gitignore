@@ -54,3 +54,4 @@ docs/build/
 target/
 
 .DS_Store
+examples/data/

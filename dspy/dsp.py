@@ -39,6 +39,30 @@ class LowPassDSP(WrapperGenerator):
         return trimmed
 
 
+class Resample(WrapperGenerator):
+    def __init__(self, generator, speed=1.0):
+        WrapperGenerator.__init__(self, generator)
+        self.speed = speed
+
+    def _generate(self, frame_count):
+        output = np.zeros(frame_count * self.num_channels, dtype=np.float32)
+        read_length = int(frame_count * self.speed)
+        signal, continue_flag = self.generator.generate(read_length)
+        in_domain = np.linspace(0, frame_count - 1, read_length)
+        out_domain = np.arange(0, frame_count)
+
+        for c in xrange(self.num_channels):
+            data = signal[c::self.num_channels]
+            interpolated = np.interp(out_domain, in_domain, data)
+            output[c::self.num_channels] = interpolated
+
+        return output
+
+    def _length(self):
+        return self.generator.length() / self.speed
+
+
+
 class Clip(WrapperGenerator):
     def __init__(self, generator, low=-1, high=1):
         self.low = low

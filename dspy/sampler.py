@@ -68,15 +68,17 @@ class Sampler(object):
             self.speed = speed
 
         def _length(self):
+            if self.loop:
+                return float('inf')
             return len(self.data) / self.num_channels
 
         def _generate(self, frame_count):
             output = np.zeros(frame_count * self.num_channels, dtype=np.float32)
 
-            start = self.frame * self.num_channels
             # Per channel Values
-            channel_length = len(self.data) / self.num_channels
+            channel_length = len(self.data)
             length = int(frame_count * self.speed)
+            start = int(self.frame * self.speed)
             segment_domain = np.arange(start, start + length)
             in_domain = np.linspace(0, frame_count - 1, length)
             out_domain = np.arange(0, frame_count)
