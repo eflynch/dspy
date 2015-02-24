@@ -9,8 +9,8 @@ SAMPLING_RATE = config['SAMPLING_RATE']
 
 class LowPassDSP(WrapperGenerator):
     def __init__(self, generator, cutoff):
-        self.h = self._get_impulse_response(cutoff, L=100)
         WrapperGenerator.__init__(self, generator)
+        self.h = self._get_impulse_response(cutoff, L=100)
 
     def _get_impulse_response(self, cutoff, L):
         omega_cut = float(cutoff) * 2.0 * np.pi / float(SAMPLING_RATE)
@@ -24,7 +24,7 @@ class LowPassDSP(WrapperGenerator):
 
     def _generate(self, frame_count):
         previous_buffer = self.generator.previous_buffer
-        signal = self.generator.generate(frame_count)
+        signal, continue_flag = self.generator.generate(frame_count)
 
         with_previous = np.concatenate((previous_buffer, signal))
 

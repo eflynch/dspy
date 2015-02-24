@@ -12,8 +12,8 @@ signals. It is implemented with pyaudio and numpy.
 
 ## Installation ##
 dspy requires:
-    - pyaudio
     - numpy
+    - pyaudio (optional features)
 These can usually be installed from pypi with pip.
 
 You may install in the standard way with
@@ -21,9 +21,9 @@ You may install in the standard way with
 ```
 python setup.py install
 ```
-or you can install with pip from this repository with
+or you can install releases with pip from pypi
 ```
-pip install git+https://github.com/eflynch/dspy
+pip install dspy
 ```
 
 ## Docs ##
