@@ -1,52 +1,69 @@
-from Queue import PriorityQueue
-from datetime import datetime
+from Queue import PriorityQueue, Queue
 
 import numpy as np
 
-from dspy import config
 from dspy.generator import Generator
 from dspy.lib import rechannel, t2f
 
 
 class Player(Generator):
-    def __init__(self, sequence=[], channels=2, live=True):
+    def __init__(self, sequence=[], channels=2, live=True, loop=False):
         Generator.__init__(self)
         self._generators = PriorityQueue()
+        self._finished = Queue()
         self._gain = 0.1
         self._live = live
+        self._length_cache = max([f+g.length() for (f, g) in sequence] + [0])
+        self.loop = loop
         self.num_channels = channels
         if sequence:
-            for (f,g) in sequence:
-                self._generators.put((f,g))
+            for (f, g) in sequence:
+                self._generators.put((f, g))
 
-        if not live:
-            self._length = max([f+g.length() for (f,g) in sequence] + [0])
+        assert(live != loop)
 
     def add(self, gen, time=None):
-        if not self._live:
-            raise Exception('Cannot add generators if Player is not live')
         if time is None:
             frame = self.frame
         else:
             frame = t2f(time)
+        self._length_cache = max(self._length_cache, gen.length() + frame)
         self._generators.put((frame, gen))
 
-    def length(self):
+    def _reset(self):
+        if self._live:
+            raise Exception('Cannot reset if Player is live')
+
+        sequence = []
+        while not self._finished.empty():
+            frame, gen = self._finished.get()
+            gen.reset()
+            sequence.append((frame, gen))
+
+        while not self._generators.empty():
+            frame, gen = self._generators.get()
+            gen.reset()
+            sequence.append((frame, gen))
+
+        for frame, gen in sequence:
+            self._generators.put((frame, gen))
+
+    def _length(self):
         if self._live:
             return float('inf')
 
-        return self._length
-
+        return self._length_cache
 
     @property
     def gain(self):
         return self._gain
+
     @gain.setter
     def gain(self, value):
         self._gain = np.clip(value, 0, 1)
 
-    def get_buffer(self, frame_count):
-        output = np.zeros( frame_count * self.num_channels, dtype = np.float32)
+    def _generate(self, frame_count):
+        output = np.zeros(frame_count * self.num_channels, dtype=np.float32)
         not_done = []
         while not self._generators.empty():
             frame, gen = self._generators.get()
@@ -59,9 +76,12 @@ class Player(Generator):
                 delay = frame - self.frame
 
             signal, continue_flag = gen.generate(frame_count - delay)
-            output[delay*self.num_channels:] += rechannel(signal, gen.num_channels, self.num_channels)
+            signal = rechannel(signal, gen.num_channels, self.num_channels)
+            output[delay * self.num_channels:] += signal
             if continue_flag:
                 not_done.append((frame, gen))
+            elif not self._live:
+                self._finished.put((frame, gen))
 
         for frame, gen in not_done:
             self._generators.put((frame, gen))

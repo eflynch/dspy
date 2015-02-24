@@ -7,111 +7,148 @@ SAMPLING_RATE = config['SAMPLING_RATE']
 
 
 class Generator(object):
-   def __init__(self):
-      self._num_channels = 1
-      self._frame = 0
-      self._previous_buffer = None
+    def __init__(self):
+        self._num_channels = 1
+        self._frame = 0
+        self._previous_buffer = None
+        self._auto_reset = False
 
-   def __add__(self, other):
-      return Sum([self, other])
+    def __add__(self, other):
+        return Sum([self, other])
 
-   def __mul__(self, other):
-      return Product([self, other])
+    def __mul__(self, other):
+        return Product([self, other])
 
-   def reset(self):
-      self._frame = 0
+    def __len__(self):
+        return self.length()
 
-   def length(self):
-      return float('inf')
+    @property
+    def auto_reset(self):
+        return self._auto_reset
 
-   @property
-   def num_channels(self):
-      return self._num_channels
+    @auto_reset.setter
+    def auto_reset(self, value):
+        self._auto_reset = value
 
-   @num_channels.setter
-   def num_channels(self, value):
-      self._num_channels = value
+    @property
+    def num_channels(self):
+        return self._num_channels
 
-   @property
-   def previous_buffer(self):
-      if self._previous_buffer is None:
-         return np.zeros(512, dtype=np.float32)
-      return self._previous_buffer
+    @num_channels.setter
+    def num_channels(self, value):
+        self._num_channels = value
 
-   @property
-   def frame(self):
-      return self._frame
+    @property
+    def previous_buffer(self):
+        if self._previous_buffer is None:
+            return np.zeros(512, dtype=np.float32)
+        return self._previous_buffer
 
-   def generate(self, frame_count):
-      signal = self.get_buffer(frame_count)
-      self._frame = self._frame + frame_count
-      self._previous_buffer = signal
-      continue_flag = self._frame < self.length()
-      return signal, continue_flag
+    @property
+    def frame(self):
+        return self._frame
 
-   def release(self):
-      pass
+    def generate(self, frame_count):
+        if self._auto_reset and self._frame + frame_count >= self._length():
+            remainder = int(self._length() - self._frame)
+            signal = self._generate(remainder)
+            self.reset()
+            signal_2 = self._generate(frame_count - remainder)
+            return np.concatenate((signal, signal_2)), True
+
+        signal = self._generate(frame_count)
+        self._frame = self._frame + frame_count
+        self._previous_buffer = signal
+        continue_flag = self._frame < self.length()
+        return signal, continue_flag
+
+    def reset(self):
+        self._reset()
+        self._frame = 0
+
+    def length(self):
+        if self._auto_reset:
+            return float('inf')
+        return self._length()
+
+    def release(self):
+        self._release()
+        pass
+
+    def _release(self):
+        pass
+
+    def _reset(self):
+        pass
+
+    def _generate(self, frame_count):
+        return np.zeros(frame_count, dtype=np.float32)
+
+    def _length(self):
+        return float('inf')
+
 
 class WrapperGenerator(Generator):
-   def __init__(self, generator):
-      self._generator = generator
-      Generator.__init__(self)
+    def __init__(self, generator):
+        Generator.__init__(self)
+        self._generator = generator
+        self.num_channels = generator.num_channels
 
-   @property
-   def generator(self):
-       return self._generator
+    @property
+    def generator(self):
+        return self._generator
 
-   def length(self):
-       return self._generator.length()
-   
-   def release(self):
-       return self._generator.release()
+    def _length(self):
+        return self._generator.length()
 
-   def reset(self):
-      self._generator.reset()
-      Generator.reset(self)
+    def _release(self):
+        return self._generator.release()
+
+    def _reset(self):
+        self._generator.reset()
+
 
 class BundleGenerator(Generator):
-   def __init__(self, generators):
-      self._generators = generators
-      Generator.__init__(self)
+    def __init__(self, generators):
+        self._generators = generators
+        Generator.__init__(self)
 
-   @property
-   def generators(self):
-       return self._generators
-   
-   def release(self):
-      for g in self._generators:
-         g.release()
+    @property
+    def generators(self):
+        return self._generators
 
-   def reset(self):
-      for g in self._generators:
-         g.reset()
-      Generator.reset(self)
+    def _release(self):
+        for g in self._generators:
+            g.release()
+
+    def _reset(self):
+        for g in self._generators:
+            g.reset()
+
 
 class Product(BundleGenerator):
-   def length(self):
-      return min(g.length() for g in self.generators)
+    def _length(self):
+        return min(g.length() for g in self.generators)
 
-   def get_buffer(self, frame_count):
-      # Stop when first factor is done
-      signal = np.ones(frame_count, dtype=np.float32)
-      for g in self.generators:
-         data, cf = g.generate(frame_count)
-         signal *= data
+    def _generate(self, frame_count):
+        # Stop when first factor is done
+        signal = np.ones(frame_count, dtype=np.float32)
+        for g in self.generators:
+            data, cf = g.generate(frame_count)
+            signal *= data
 
-      return signal
+        return signal
 
 
 class Sum(BundleGenerator):
-   def length(self):
-      return max(g.length() for g in self.generators)
+    def _length(self):
+        return max(g.length() for g in self.generators)
 
-   def get_buffer(self, frame_count):
-      # Continue until all summands are done
-      signal = np.zeros(frame_count, dtype=np.float32)
-      for g in self.generators:
-         data, cf = g.generate(frame_count)
-         signal+= data
+    def _generate(self, frame_count):
+        # Continue until all summands are done
+        signal = np.zeros(frame_count, dtype=np.float32)
+        for g in self.generators:
+            data, cf = g.generate(frame_count)
+            signal += data
 
-      return signal
+        return signal

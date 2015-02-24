@@ -11,13 +11,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   introduction
    dspy
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   examples

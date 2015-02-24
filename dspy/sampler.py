@@ -9,7 +9,6 @@
 #####################################################################
 
 import wave
-import struct
 
 import numpy as np
 
@@ -22,26 +21,24 @@ SAMPLING_RATE = config['SAMPLING_RATE']
 
 
 class WaveReader(object):
-    def __init__(self, filepath) :
+    def __init__(self, filepath):
         super(WaveReader, self).__init__()
 
         self.wave = wave.open(filepath)
         self.channels, self.sampwidth, self.sr, self.end, \
             comptype, compname = self.wave.getparams()
-      
-        # for now, we will only accept stereo, 16 bit files      
         assert(self.channels == 2)
         assert(self.sampwidth == 2)
         assert(self.sr == SAMPLING_RATE)
 
     # read an arbitrary chunk of an arbitrary length
-    def read(self, num_frames) :
+    def read(self, num_frames):
         # get the raw data from wave file as a byte string.
         # will return num_frames, or less if too close to end of file
         raw_bytes = self.wave.readframes(num_frames * self.channels)
 
         # convert to numpy array, where the dtype is int16 or int8
-        samples = np.fromstring(raw_bytes, dtype = np.int16)
+        samples = np.fromstring(raw_bytes, dtype=np.int16)
 
         # convert from integer type to floating point, and scale to [-1, 1]
         samples = samples.astype(np.float32)
@@ -49,39 +46,57 @@ class WaveReader(object):
 
         return samples
 
-    def set_pos(self, frame) :
+    def set_pos(self, frame):
         self.wave.setpos(frame)
 
 
 class Sampler(object):
-    def __init__(self, file_path) :
+    def __init__(self, file_path):
         self.wave_reader = WaveReader(file_path)
+        self.num_channels = self.wave_reader.channels
+        self.data_cache = {}
 
     class Sample(Generator):
-        def __init__(self, data, num_channels, loop=False) :
+        def __init__(self, data, num_channels, loop=False, speed=1.0):
             Generator.__init__(self)
             self.num_channels = num_channels
             self.data = data
             self.loop = loop
+            self.speed = speed
 
-        def length(self):
+        def set_speed(self, speed):
+            self.speed = speed
+
+        def _length(self):
             if self.loop:
                 return float('inf')
-            else:
-                return len(self.data) / self.num_channels
+            return len(self.data) / self.num_channels
 
-        def get_buffer(self, frame_count):
-            sample = self.frame * self.num_channels
-            length = frame_count * self.num_channels
-            domain = np.arange(sample, sample + length)
-            indices = (domain + len(self.data)) % len(self.data)
-            output = np.array(self.data[indices], dtype=np.float32)
+        def _generate(self, frame_count):
+            output = np.zeros(frame_count * self.num_channels, dtype=np.float32)
+
+            # Per channel Values
+            channel_length = len(self.data)
+            length = int(frame_count * self.speed)
+            start = int(self.frame * self.speed)
+            segment_domain = np.arange(start, start + length)
+            in_domain = np.linspace(0, frame_count - 1, length)
+            out_domain = np.arange(0, frame_count)
+
+            for c in xrange(self.num_channels):
+                indices = (c + (segment_domain * self.num_channels)) % channel_length
+                data = np.array(self.data[indices], dtype=np.float32)
+                interpolated = np.interp(out_domain, in_domain, data)
+                output[c::self.num_channels] = interpolated
+
             return output
 
-    def make_gen(self, start, duration, loop=False):
+    def sample(self, start, duration, loop=False, speed=1.0):
         start_frame = t2f(start)
         num_frames = t2f(duration)
-        self.wave_reader.set_pos(start_frame)
-        data = self.wave_reader.read(num_frames)
-        num_channels = self.wave_reader.channels
-        return Sampler.Sample(data, num_channels, loop)
+        if (start_frame, num_frames) not in self.data_cache:
+            self.wave_reader.set_pos(start_frame)
+            self.data_cache[(start, num_frames)] = self.wave_reader.read(num_frames)
+
+        data = self.data_cache[(start_frame, num_frames)]
+        return Sampler.Sample(data, self.num_channels, loop, speed)

@@ -16,8 +16,11 @@ class PyTest(TestCommand):
         errcode = pytest.main(self.pytest_args)
         sys.exit(errcode)
 
+# Load version number
+exec(open('dspy/_version.py').read())
+
 setup(name='dspy',
-      version='0.0.0',
+      version=__version__,
       description='Python DSP and Synthesis',
       url='http://github.com/eflynch/dspy/',
       author='Evan Lynch',
@@ -26,6 +29,9 @@ setup(name='dspy',
       packages=find_packages(),
       platforms='any',
       tests_require=['pytest'],
-      install_requires=['numpy==1.9.1'],
+      install_requires=['numpy>=1.9.1'],
+      extras_require = {
+        'pyaudio': ['pyaudio']
+      },
       cmdclass={'test': PyTest},
       zip_safe=True)

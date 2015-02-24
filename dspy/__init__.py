@@ -3,16 +3,25 @@
 .. moduleauthor:: Evan Lynch <evan.f.lynch@gmail.com>
 
 """
-
-__version__ = "0.0.0"
+from ._version import __version__
+__version__ = __version__
 
 config = {}
 config['SAMPLING_RATE'] = 44100
 
 from dspy.player import Player
 from dspy.generator import Generator, WrapperGenerator, BundleGenerator, Sum, Product
-from dspy.basic import FMap, DC, Sine, WaveTable, Noise, Pink
-from dspy.adsr import ADSREnvelope
-from dspy.note import Tone, Note, FM, SQUARE_AMPLITUDES, SINE_AMPLITUDES, SAW_AMPLITUDES, TRI_AMPLITUDES
+from dspy.basic import Map, DC, Sine, WaveTable, Noise, Pink
+from dspy.envelope import ExpEnvelope, ReleaseEnvelope, ADSREnvelope
+from dspy.note import Tone, Note, FM
 from dspy.sampler import Sampler
+
+from dspy import overtones
 from dspy import dsp
+
+try:
+    from dspy.pyaudioplayer import PyAudioPlayer
+except ImportError:
+    class PyAudioPlayer:
+        def __init__(cls, *args, **kwargs):
+            raise Warning('This feature requires pyaudio')
