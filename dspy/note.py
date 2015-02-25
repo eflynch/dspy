@@ -14,10 +14,7 @@ class Note(Generator):
                 envelope=None):
         t = Tone(pitch, overtones, detune)
         if envelope is None:
-            envelope = ADSREnvelope()
-        if duration is not None:
-            release_frame = t2f(duration) - envelope.release_time
-            envelope.set_release_frame(release_frame)
+            envelope = ADSREnvelope(duration)
 
         gen = t * envelope
         return gen
