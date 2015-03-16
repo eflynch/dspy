@@ -35,7 +35,7 @@ class WaveReader(object):
     def read(self, num_frames):
         # get the raw data from wave file as a byte string.
         # will return num_frames, or less if too close to end of file
-        raw_bytes = self.wave.readframes(num_frames * self.channels)
+        raw_bytes = self.wave.readframes(num_frames)
 
         # convert to numpy array, where the dtype is int16 or int8
         samples = np.fromstring(raw_bytes, dtype=np.int16)
@@ -48,6 +48,30 @@ class WaveReader(object):
 
     def set_pos(self, frame):
         self.wave.setpos(frame)
+
+class WaveFileGenerator(Generator):
+    def __init__(self, filepath, gain=1):
+        Generator.__init__(self)
+        self.wave_reader = WaveReader(filepath)
+        self.num_channels = self.wave_reader.channels
+        self.gain = gain
+        self.paused = False
+
+    def stop(self):
+        self.paused = True
+
+    def start(self):
+        self.paused = False
+
+    def _generate(self, frame_count):
+        if self.paused:
+            return np.zeros(frame_count * self.num_channels, dtype=np.float32)
+
+        read_frames = self.wave_reader.read(frame_count)
+        output = np.zeros(frame_Count * self.num_channels, dtype=np.float32)
+        output[:len(read_frames)] += read_frames
+        output *= self.gain
+        return output
 
 
 class Sampler(object):

@@ -35,7 +35,7 @@ class PyAudioPlayer:
 
         self.stream = self.pyaudio.open(format = pyaudio.paFloat32,
                        channels = player.num_channels,
-                       frames_per_buffer = 512,
+                       frames_per_buffer = 1024,
                        rate = config['SAMPLING_RATE'],
                        output = True,
                        input = False,

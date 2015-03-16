@@ -57,6 +57,18 @@ class Rect(Generator):
         domain[~highs] = -self.amp
         return domain
 
+# class Ramp(Generator):
+#     def __init__(self, start, end, duration):
+#         Generator.__init__(self)
+#         self.start = start
+#         self.end = end
+#         self.duration = duration
+
+#     def _generate(self, frame_count):
+#         (self.end - self.start) / 
+#         domain = np.arange(self.rame, self.frame + frame_count)
+
+
 
 # TODO: Optimize this class
 class WaveTable(Generator):

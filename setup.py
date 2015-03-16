@@ -32,7 +32,8 @@ setup(name='dspy',
       tests_require=['pytest'],
       install_requires=['numpy>=1.9.1'],
       extras_require = {
-        'pyaudio': ['pyaudio']
+        'pyaudio': ['pyaudio'],
+        'fluidsynth': ['pyfluidsynth']
       },
       cmdclass={'test': PyTest},
       zip_safe=True)
