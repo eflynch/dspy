@@ -1,4 +1,6 @@
 import pyaudio
+import wave
+import numpy as np
 
 from dspy import config
 
@@ -28,10 +30,11 @@ def _find_best_output(audio):
 
 
 class PyAudioPlayer:
-    def __init__(self, player):
+    def __init__(self, player, write_filename=None):
         self.player = player
         self.pyaudio = pyaudio.PyAudio()
         dev_idx = _find_best_output(self.pyaudio)
+        self.write_filename = write_filename
 
         self.stream = self.pyaudio.open(format = pyaudio.paFloat32,
                        channels = player.num_channels,
@@ -51,10 +54,25 @@ class PyAudioPlayer:
 
     def _callback(self, in_data, frame_count, time_info, status):
         output, continue_flag = self.player.generate(frame_count)
-        return (output.tostring(), pyaudio.paContinue)
+
+        string = output.tostring()
+
+        if self.write_filename is not None:
+            output *= ( 32768.0)
+            output = output.astype(np.int16)
+            self.write_file.writeframes(output.tostring())
+
+        return (string, pyaudio.paContinue)
 
     def start(self):
+        if self.write_filename:
+            self.write_file = wave.open(self.write_filename, 'wb')
+            self.write_file.setnchannels(self.player.num_channels)
+            sample_width = self.pyaudio.get_sample_size(pyaudio.paInt16)
+            self.write_file.setsampwidth(sample_width)
+            self.write_file.setframerate(config['SAMPLING_RATE'])
         self.stream.start_stream()
+
 
     def stop(self):
         self.stream.stop_stream()
@@ -62,3 +80,6 @@ class PyAudioPlayer:
     def close(self):
         self.stream.close()
         self.pyaudio.terminate()
+
+        if self.write_filename is not None:
+            self.write_file.close()

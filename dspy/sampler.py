@@ -8,46 +8,16 @@
 #
 #####################################################################
 
-import wave
-
 import numpy as np
 
 from dspy.generator import Generator
 from dspy import config
 from dspy.lib import t2f
+from dspy.waverw import WaveReader
 
 
 SAMPLING_RATE = config['SAMPLING_RATE']
 
-
-class WaveReader(object):
-    def __init__(self, filepath):
-        super(WaveReader, self).__init__()
-
-        self.wave = wave.open(filepath)
-        self.channels, self.sampwidth, self.sr, self.end, \
-            comptype, compname = self.wave.getparams()
-        assert(self.channels == 2)
-        assert(self.sampwidth == 2)
-        assert(self.sr == SAMPLING_RATE)
-
-    # read an arbitrary chunk of an arbitrary length
-    def read(self, num_frames):
-        # get the raw data from wave file as a byte string.
-        # will return num_frames, or less if too close to end of file
-        raw_bytes = self.wave.readframes(num_frames)
-
-        # convert to numpy array, where the dtype is int16 or int8
-        samples = np.fromstring(raw_bytes, dtype=np.int16)
-
-        # convert from integer type to floating point, and scale to [-1, 1]
-        samples = samples.astype(np.float32)
-        samples *= (1 / 32768.0)
-
-        return samples
-
-    def set_pos(self, frame):
-        self.wave.setpos(frame)
 
 class WaveFileGenerator(Generator):
     def __init__(self, filepath, gain=1):
