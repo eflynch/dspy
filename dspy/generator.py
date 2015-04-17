@@ -1,3 +1,5 @@
+from numbers import Number
+
 import numpy as np
 
 from dspy import config
@@ -14,10 +16,16 @@ class Generator(object):
         self._auto_reset = False
 
     def __add__(self, other):
-        return Sum([self, other])
+        if isinstance(other, Generator):
+            return Sum([self, other])
+        if isinstance(other, Number):
+            return Offset(self, other)
 
     def __mul__(self, other):
-        return Product([self, other])
+        if isinstance(other, Generator):
+            return Product([self, other])
+        if isinstance(other, Number):
+            return Gain(self, other)
 
     def __len__(self):
         return self.length()
@@ -152,3 +160,24 @@ class Sum(BundleGenerator):
             signal += data
 
         return signal
+
+
+class Gain(WrapperGenerator):
+    def __init__(self, generator, gain):
+        WrapperGenerator.__init__(self, generator)
+        self.gain = gain
+
+    def _generate(self, frame_count):
+        signal, continue_flag = self.generator.generate(frame_count)
+        return self.gain * signal
+
+
+class Offset(WrapperGenerator):
+    def __init__(self, generator, offset):
+        WrapperGenerator.__init__(self, generator)
+        self.offset = offset
+
+    def _generate(self, frame_count):
+        signal, continue_flag = self.generator.generate(frame_count)
+        return signal + self.offset
+

@@ -1,4 +1,4 @@
-from Queue import PriorityQueue, Queue
+from Queue import PriorityQueue, Queue, Full
 
 import numpy as np
 
@@ -7,20 +7,36 @@ from dspy.lib import rechannel, t2f
 
 
 class Player(Generator):
-    def __init__(self, sequence=[], channels=2, live=True, loop=False):
+    def __init__(self, sequence=[], channels=2, live=True, loop=False, clip=True, max_size=0):
         Generator.__init__(self)
-        self._generators = PriorityQueue()
+        self.max_size = max_size
+        self._generators = PriorityQueue(max_size)
         self._finished = Queue()
         self._gain = 0.1
         self._live = live
         self._length_cache = max([f+g.length() for (f, g) in sequence] + [0])
         self.loop = loop
+        self.clip = clip
         self.num_channels = channels
+
+        self.num_gens = 0
+
         if sequence:
             for (f, g) in sequence:
-                self._generators.put((f, g))
+                self._append_gen(f, g)
 
-        assert(live != loop)
+        if live:
+            assert(not loop)
+
+
+        self.auto_reset = loop
+
+    def _append_gen(self, frame, gen):
+        try:
+            self._generators.put((t2f(frame), gen), False)
+        except Full:
+            print 'Too many generators to append another'
+            return
 
     def add(self, gen, time=None):
         if time is None:
@@ -28,7 +44,10 @@ class Player(Generator):
         else:
             frame = t2f(time)
         self._length_cache = max(self._length_cache, gen.length() + frame)
-        self._generators.put((frame, gen))
+
+        if self.num_gens < self.max_size or self.max_size == 0:
+            self.num_gens += 1
+            self._append_gen(frame, gen)
 
     def _reset(self):
         if self._live:
@@ -46,7 +65,7 @@ class Player(Generator):
             sequence.append((frame, gen))
 
         for frame, gen in sequence:
-            self._generators.put((frame, gen))
+            self._append_gen(frame, gen)
 
     def _length(self):
         if self._live:
@@ -80,11 +99,15 @@ class Player(Generator):
             output[delay * self.num_channels:] += signal
             if continue_flag:
                 not_done.append((frame, gen))
-            elif not self._live:
-                self._finished.put((frame, gen))
+            else:
+                if not self._live:
+                    self._finished.put((frame, gen))
+                self.num_gens -= 1
 
         for frame, gen in not_done:
-            self._generators.put((frame, gen))
+            self._append_gen(frame, gen)
 
         output *= self.gain
+        if self.clip:
+            output = np.clip(output, -1, 1)
         return output

@@ -10,7 +10,7 @@ config = {}
 config['SAMPLING_RATE'] = 44100
 
 from dspy.player import Player
-from dspy.generator import Generator, WrapperGenerator, BundleGenerator, Sum, Product
+from dspy.generator import Generator, WrapperGenerator, BundleGenerator, Sum, Product, Gain, Offset
 from dspy.basic import Map, DC, Sine, WaveTable, Noise, Pink
 from dspy.envelope import ExpEnvelope, ReleaseEnvelope, ADSREnvelope
 from dspy.note import Tone, Note, FM
@@ -25,3 +25,10 @@ except ImportError:
     class PyAudioPlayer:
         def __init__(cls, *args, **kwargs):
             raise Warning('This feature requires pyaudio')
+
+try:
+    from dspy.fluid import Synth as FluidSynthGenerator
+except ImportError:
+    class FluidSynthGenerator:
+        def __init__(cls, *args, **kwargs):
+            raise Warning('This feature requires pyfluidsynth')

@@ -46,6 +46,20 @@ class ExpEnvelope(Generator):
 
         return np.piecewise(domain, conditions, functions)
 
+class DurationEnvelope(Generator):
+    def __init__(self, duration):
+        Generator.__init__(self)
+        self.duration = t2f(duration)
+
+    def _length(self):
+        return self.duration
+
+    def _generate(self, frame_count):
+        output = np.arange(self.frame, self.frame + frame_count,
+                           dtype=np.float32)
+        output[output >= self.duration] = 0
+        output[output < self.duration] = 1
+        return output
 
 class ReleaseEnvelope(Generator):
     def __init__(self, release_time=0.1, release_order=0.75, duration=None):
@@ -53,6 +67,7 @@ class ReleaseEnvelope(Generator):
         self.release_time = t2f(release_time)
         self.release_order = release_order
         self.release_frame = float('inf')
+        self.allow_release = (duration is None)
         if duration:
             self.release_frame = t2f(duration) - self.release_time
 
@@ -63,7 +78,8 @@ class ReleaseEnvelope(Generator):
         return self.release_frame + self.release_time
 
     def _release(self):
-        self.release_frame = self.frame
+        if self.allow_release:
+            self.release_frame = self.frame
 
     def _generate(self, frame_count):
         # print self.frame, frame_count

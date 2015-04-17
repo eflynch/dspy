@@ -8,46 +8,40 @@
 #
 #####################################################################
 
-import wave
-
 import numpy as np
 
 from dspy.generator import Generator
 from dspy import config
 from dspy.lib import t2f
+from dspy.waverw import WaveReader
 
 
 SAMPLING_RATE = config['SAMPLING_RATE']
 
 
-class WaveReader(object):
-    def __init__(self, filepath):
-        super(WaveReader, self).__init__()
+class WaveFileGenerator(Generator):
+    def __init__(self, filepath, gain=1):
+        Generator.__init__(self)
+        self.wave_reader = WaveReader(filepath)
+        self.num_channels = self.wave_reader.channels
+        self.gain = gain
+        self.paused = False
 
-        self.wave = wave.open(filepath)
-        self.channels, self.sampwidth, self.sr, self.end, \
-            comptype, compname = self.wave.getparams()
-        assert(self.channels == 2)
-        assert(self.sampwidth == 2)
-        assert(self.sr == SAMPLING_RATE)
+    def stop(self):
+        self.paused = True
 
-    # read an arbitrary chunk of an arbitrary length
-    def read(self, num_frames):
-        # get the raw data from wave file as a byte string.
-        # will return num_frames, or less if too close to end of file
-        raw_bytes = self.wave.readframes(num_frames * self.channels)
+    def start(self):
+        self.paused = False
 
-        # convert to numpy array, where the dtype is int16 or int8
-        samples = np.fromstring(raw_bytes, dtype=np.int16)
+    def _generate(self, frame_count):
+        if self.paused:
+            return np.zeros(frame_count * self.num_channels, dtype=np.float32)
 
-        # convert from integer type to floating point, and scale to [-1, 1]
-        samples = samples.astype(np.float32)
-        samples *= (1 / 32768.0)
-
-        return samples
-
-    def set_pos(self, frame):
-        self.wave.setpos(frame)
+        read_frames = self.wave_reader.read(frame_count)
+        output = np.zeros(frame_Count * self.num_channels, dtype=np.float32)
+        output[:len(read_frames)] += read_frames
+        output *= self.gain
+        return output
 
 
 class Sampler(object):
