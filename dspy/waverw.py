@@ -2,6 +2,8 @@ import wave
 
 import numpy as np
 
+SAMPLING_RATE = config['SAMPLING_RATE']
+
 class WaveReader(object):
     def __init__(self, filepath):
         super(WaveReader, self).__init__()
