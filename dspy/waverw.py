@@ -2,6 +2,8 @@ import wave
 
 import numpy as np
 
+from dspy import config
+
 SAMPLING_RATE = config['SAMPLING_RATE']
 
 class WaveReader(object):
