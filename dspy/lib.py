@@ -21,7 +21,7 @@ def rechannel(buf, in_channels, out_channels):
             in_channel = (in_channel + 1) % in_channels
     elif out_channels > in_channels:
         out_channel = 0
-        for in_channel in range(out_channels):
+        for in_channel in range(in_channels):
             output[out_channel::out_channels] += buf[in_channel::in_channels]
             out_channel = (out_channel + 1) % out_channels
 
