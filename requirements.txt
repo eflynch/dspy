@@ -1,5 +1,5 @@
 Sphinx==1.2.3
 docutils==0.12
 mock==1.0.1
-numpy==1.9.1
+numpy==1.21.0
 pytest==2.6.4
