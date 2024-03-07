@@ -35,7 +35,7 @@ class Player(Generator):
         try:
             self._generators.put((t2f(frame), gen), False)
         except Full:
-            print 'Too many generators to append another'
+            print(Too many generators to append another)
             return
 
     def add(self, gen, time=None):
